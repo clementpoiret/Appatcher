@@ -1,7 +1,11 @@
+import threading
+
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import (QApplication, QGridLayout, QHBoxLayout, QLabel,
                              QLineEdit, QMainWindow, QMenu, QPushButton,
                              QTextBrowser, QWidget)
+
+from ..music.player import Player
 
 
 class MainWindow(QMainWindow):
@@ -22,7 +26,19 @@ class MainWindow(QMainWindow):
         self.resize(350, 250)
         self.center()
         self.setWindowTitle('Appatcher v0.0.1')
+
         self.show()
+
+        self.player = Player()
+        self.musicThread = threading.Thread(target=self.player.run)
+        self.musicThread.start()
+
+    def switchMusic(self):
+        if self.player.isRunning():
+            self.player.terminate()
+        else:
+            self.musicThread = threading.Thread(target=self.player.run)
+            self.musicThread.start()
 
     def setupMenuBar(self) -> None:
         menubar = self.menuBar()
@@ -30,6 +46,7 @@ class MainWindow(QMainWindow):
         musicMenu = menubar.addMenu('Music')
         playAct = QAction('Play/Pause', self)
         musicMenu.addAction(playAct)
+        playAct.triggered.connect(self.switchMusic)
 
         # Другие инструменты для взлома
         extraMenu = menubar.addMenu('Extra Tools')
@@ -52,8 +69,8 @@ class MainWindow(QMainWindow):
         aboutMenu = menubar.addMenu('About')
 
     def mainGrid(self) -> QGridLayout:
-        inputLabel = QLabel('Input APK')
-        diffPatchLabel = QLabel('Patch')
+        inputButton = QPushButton('Load APK', self)
+        diffPatchButton = QPushButton('Load Patch', self)
         outputLabel = QLabel('Output')
 
         inputEdit = QLineEdit('Input APK')
@@ -67,10 +84,10 @@ class MainWindow(QMainWindow):
         grid = QGridLayout()
         grid.setSpacing(10)
 
-        grid.addWidget(inputLabel, 1, 0)
+        grid.addWidget(inputButton, 1, 0)
         grid.addWidget(inputEdit, 1, 1)
 
-        grid.addWidget(diffPatchLabel, 2, 0)
+        grid.addWidget(diffPatchButton, 2, 0)
         grid.addWidget(diffPatchEdit, 2, 1)
 
         grid.addWidget(outputLabel, 3, 0)
@@ -91,3 +108,8 @@ class MainWindow(QMainWindow):
 
         qr.moveCenter(cp)
         self.move(qr.topLeft())
+
+    def closeEvent(self, event) -> None:
+        self.player.terminate()
+
+        return super().closeEvent(event)
