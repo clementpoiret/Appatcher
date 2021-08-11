@@ -8,6 +8,7 @@ authors = ["c@t <c@t.com>"]
 python = "^3.9"
 PyQt6 = "^6.1.1"
 pydub = "^0.25.1"
+patch = "^1.16"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
